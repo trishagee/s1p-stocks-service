@@ -18,12 +18,13 @@ fun main() {
 }
 
 @RestController
-class StockPricesRestController() {
+class StockPricesRestController {
 
     @GetMapping(value = ["/stocks/{symbol}"],
                 produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun prices(@PathVariable symbol: String): Flux<Double> {
-        return Flux.interval(Duration.ofSeconds(1L))
+        return Flux
+                .interval(Duration.ofSeconds(1L))
                 .map { ThreadLocalRandom.current().nextDouble(100.0) }
     }
 
