@@ -3,6 +3,8 @@ package com.mechanitis.demo.stocks.service
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.http.MediaType
+import org.springframework.messaging.handler.annotation.MessageMapping
+import org.springframework.stereotype.Controller
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -28,11 +30,19 @@ class StockPricesRestController(private val stockService: StockService) {
 
 }
 
+@Controller
+class StockPricesRSocketController(val stockService: StockService) {
+    @MessageMapping("stockPrices")
+    fun prices(symbol: String) : Flux<String> {
+        return stockService.streamOfPrices(symbol)
+    }
+}
+
 @Service
 class StockService {
-    private val pricesForStock = ConcurrentHashMap<String, Flux<Double>>()
+    private val pricesForStock = ConcurrentHashMap<String, Flux<String>>()
 
-    fun streamOfPrices(symbol: String): Flux<Double> {
+    fun streamOfPrices(symbol: String): Flux<String> {
         return pricesForStock.computeIfAbsent(symbol) {
             Flux
                 .interval(Duration.ofSeconds(1L))
@@ -42,6 +52,6 @@ class StockService {
 
     }
 
-    private fun randomStockPrice() = ThreadLocalRandom.current().nextDouble(100.0)
+    private fun randomStockPrice() :String = ThreadLocalRandom.current().nextDouble(100.0).toString()
 
 }
