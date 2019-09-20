@@ -31,11 +31,10 @@ class StockPricesRestController(private val stockService: StockService) {
 }
 
 @Controller
-class StockPricesRSocketController(val stockService: StockService) {
+class StockPricesRSocketController(private val stockService: StockService) {
+
     @MessageMapping("stockPrices")
-    fun prices(symbol: String) : Flux<String> {
-        return stockService.streamOfPrices(symbol)
-    }
+    fun prices(symbol: String) = stockService.streamOfPrices(symbol)
 }
 
 @Service
@@ -49,9 +48,8 @@ class StockService {
                 .map { randomStockPrice() }
                 .share()
         }
-
     }
 
-    private fun randomStockPrice() :String = ThreadLocalRandom.current().nextDouble(100.0).toString()
+    private fun randomStockPrice(): String = ThreadLocalRandom.current().nextDouble(100.0).toString()
 
 }
