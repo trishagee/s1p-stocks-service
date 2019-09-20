@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Flux
 import java.time.Duration
+import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ThreadLocalRandom
 
@@ -39,17 +40,21 @@ class StockPricesRSocketController(private val stockService: StockService) {
 
 @Service
 class StockService {
-    private val pricesForStock = ConcurrentHashMap<String, Flux<String>>()
+    private val pricesForStock = ConcurrentHashMap<String, Flux<StockPrice>>()
 
-    fun streamOfPrices(symbol: String): Flux<String> {
+    fun streamOfPrices(symbol: String): Flux<StockPrice> {
         return pricesForStock.computeIfAbsent(symbol) {
             Flux
                 .interval(Duration.ofSeconds(1L))
-                .map { randomStockPrice() }
+                .map { StockPrice(symbol, randomStockPrice(), LocalDateTime.now()) }
                 .share()
         }
     }
 
-    private fun randomStockPrice(): String = ThreadLocalRandom.current().nextDouble(100.0).toString()
+    private fun randomStockPrice() = ThreadLocalRandom.current().nextDouble(100.0)
 
 }
+
+class StockPrice(val symbol: String,
+                 val price: Double,
+                 val time: LocalDateTime)
