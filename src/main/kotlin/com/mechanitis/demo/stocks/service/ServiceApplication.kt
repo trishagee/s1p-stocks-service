@@ -25,7 +25,9 @@ class StockPricesRestController {
     fun prices(@PathVariable symbol: String): Flux<Double> {
         return Flux
                 .interval(Duration.ofSeconds(1L))
-                .map { ThreadLocalRandom.current().nextDouble(100.0) }
+                .map { randomStockPrice() }
     }
+
+    private fun randomStockPrice() = ThreadLocalRandom.current().nextDouble(100.0)
 
 }
