@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Flux
 import java.time.Duration
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ThreadLocalRandom
 
 @SpringBootApplication
@@ -23,19 +24,24 @@ class StockPricesRestController(private val stockService: StockService) {
 
     @GetMapping(value = ["/stocks/{symbol}"],
                 produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
-    fun prices(@PathVariable symbol: String) = stockService.streamOfPrices()
+    fun prices(@PathVariable symbol: String) = stockService.streamOfPrices(symbol)
 
 }
 
 @Service
 class StockService {
-    fun streamOfPrices(): Flux<Double> {
-        return Flux
+    private val pricesForStock = ConcurrentHashMap<String, Flux<Double>>()
+
+    fun streamOfPrices(symbol: String): Flux<Double> {
+        return pricesForStock.computeIfAbsent(symbol) {
+            Flux
                 .interval(Duration.ofSeconds(1L))
                 .map { randomStockPrice() }
+                .share()
+        }
+
     }
 
     private fun randomStockPrice() = ThreadLocalRandom.current().nextDouble(100.0)
-
 
 }
