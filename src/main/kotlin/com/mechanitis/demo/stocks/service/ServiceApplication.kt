@@ -1,5 +1,6 @@
 package com.mechanitis.demo.stocks.service
 
+import org.apache.commons.logging.LogFactory
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.http.MediaType
@@ -41,12 +42,14 @@ class StockPricesRSocketController(private val stockService: StockService) {
 @Service
 class StockService {
     private val pricesForStock = ConcurrentHashMap<String, Flux<StockPrice>>()
+    private val log = LogFactory.getLog(javaClass)
 
     fun streamOfPrices(symbol: String): Flux<StockPrice> {
         return pricesForStock.computeIfAbsent(symbol) {
             Flux
                 .interval(Duration.ofSeconds(1L))
                 .map { StockPrice(symbol, randomStockPrice(), LocalDateTime.now()) }
+                .doOnSubscribe { _ -> log.info("new subscription for symbol " + symbol + '.'.toString()) }
                 .share()
         }
     }
