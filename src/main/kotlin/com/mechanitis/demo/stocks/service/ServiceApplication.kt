@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ThreadLocalRandom
 
 @SpringBootApplication
-open class ServiceApplication
+class ServiceApplication
 
 fun main() {
     runApplication<ServiceApplication>()
@@ -49,7 +49,7 @@ class StockService {
             Flux
                 .interval(Duration.ofSeconds(1L))
                 .map { StockPrice(symbol, randomStockPrice(), LocalDateTime.now()) }
-                .doOnSubscribe { _ -> log.info("new subscription for symbol " + symbol + '.'.toString()) }
+                .doOnSubscribe { log.info("New subscription for symbol $symbol.") }
                 .share()
         }
     }
