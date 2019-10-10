@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Flux
-import java.time.Duration
+import java.time.Duration.ofSeconds
 import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ThreadLocalRandom
@@ -29,7 +29,6 @@ class StockPricesRestController(private val stockService: StockService) {
     @GetMapping(value = ["/stocks/{symbol}"],
                 produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun prices(@PathVariable symbol: String) = stockService.streamOfPrices(symbol)
-
 }
 
 @Controller
@@ -47,10 +46,10 @@ class StockService {
     fun streamOfPrices(symbol: String): Flux<StockPrice> {
         return pricesForStock.computeIfAbsent(symbol) {
             Flux
-                .interval(Duration.ofSeconds(1L))
-                .map { StockPrice(symbol, randomStockPrice(), LocalDateTime.now()) }
-                .doOnSubscribe { log.info("New subscription for symbol $symbol.") }
-                .share()
+                    .interval(ofSeconds(1))
+                    .map { StockPrice(symbol, randomStockPrice(), LocalDateTime.now()) }
+                    .doOnSubscribe { log.info("New subscription for symbol $symbol.") }
+                    .share()
         }
     }
 
@@ -58,6 +57,6 @@ class StockService {
 
 }
 
-class StockPrice(val symbol: String,
-                 val price: Double,
-                 val time: LocalDateTime)
+data class StockPrice(val symbol: String,
+                      val price: Double,
+                      val time: LocalDateTime)
